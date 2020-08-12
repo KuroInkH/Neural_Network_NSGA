@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
    readNSGAParameters(argc, argv, mop, p);
 
    cout << "\nInput data successfully entered, now performing initialization.\n";
-   string oDir = "/home/bci/eclipse-workspace/Optimizador/Release/salida/"; // :)
+   string oDir = "/home/lily/Documentos/Thesis/VERSIONES_FINALES/NN_v1/"; // :)
    NSGA nsga(mop, &r, oDir, p);
 
    cout << "\nNSGA-II was successfully created.\n";

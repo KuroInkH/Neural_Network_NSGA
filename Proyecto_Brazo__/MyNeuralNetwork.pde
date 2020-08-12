@@ -106,7 +106,7 @@ class MyNeuralNetwork{
         i[x] = i[x] * -1;
       }      
       temp[x] = i[x]/vMax;
-      System.out.println("Input " + x + ": " + temp[x]);
+      //System.out.println("Input " + x + ": " + temp[x]);
     }
     return temp;
   }
@@ -122,7 +122,7 @@ class MyNeuralNetwork{
          output[x] =  (float)(output[x] + (Math.PI));
       }
       //output[x] = (float)(o[x]);
-      System.out.println("Output " + x + ": " + (o[x])+", " +output[x]);
+ //     System.out.println("Output " + x + ": " + (o[x])+", " +output[x]);
     }
     return output;
   }

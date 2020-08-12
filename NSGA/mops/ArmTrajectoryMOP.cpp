@@ -99,13 +99,20 @@ void ArmTrajectoryMOP::evaluate(const vector<double>& x, const vector<int>& gene
       unsigned int i = 0;
       while ((ss >> temp) && i < fx.size()) { // Cuidar que no se pase si hay más elementos en la cadena.
           fx[i] = temp;
+          //DEBERÍAN LLEGAR EN EL SIGUIENTE ORDEN
+          //>obj1 sum áng
+          //>obj2 riesgo de colisión
+          //>Restricción distancia
           if (i == 0) {
-        	  cout << "--> suma ángulos= " << fx[i] << "; ";
+        	  cout << "--> suma de ángulos= " << fx[i] << "; ";
+          }
+          else{
+            cout << "--> riesgo de colisión= " << fx[i] << "; ";
           }
           i++;
       }
 
       ss >> temp;
-      gcons[0] = temp;
+      gcons[0] = temp * (-1);
       cout << "\trestr. (dist)= " << gcons[0] << endl;
 }

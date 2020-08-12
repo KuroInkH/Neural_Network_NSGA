@@ -36,6 +36,10 @@ class Robot extends Thread {
   public KinectControl kinect;
   //Objeto a sujetar
   public Objeto objeto1;
+  //Objeto(s) a evitar
+  public Obstacle[] obstaculo;
+  //número de obstáculos a evitar
+  public int numObstaculos;
   //valor del movimiento del radio y ángulo del Robot (Algoritmo de Hernando)
   public int valRadio, valAngle;
   //Posición de la nube de puntos dentro de los ejes x,y del sistema de coordenadas final del kinect
@@ -67,7 +71,6 @@ class Robot extends Thread {
              // setServoTurn("s4", 0.15);
                      
         for (int i = 0; i < a.length; i++) {
-          //setServoTurn(i, a[i]);
           anglesServos[i] = a[i];
           //System.out.println("Ángulo " + i + ": " + anglesServos[i]);
         }
@@ -84,10 +87,11 @@ class Robot extends Thread {
         for (int i = 0; i < a.length; i++)
           sumaAngulos += abs(a[i]);
         
-        resultados[2] = sumaAngulos;//sumaAngulos;
+        resultados[0] = sumaAngulos;//sumaAngulos;
 
-        // Objetivo 2: Aceleración
-        resultados[1] =55; // Aceleración ficticia.
+        // Objetivo 2: Riesgo de colisión
+        resultados[1] =getObstacleDistance();
+        //resultados[1] = 0; 
         
         // Restricción: Distancia al objetivo.
         //Calcular la distancia entre el último eslabón y la posición del objetivo x,y,z.
@@ -96,13 +100,14 @@ class Robot extends Thread {
         Coord.x=robotArm.eslabon5.csNextEslabon.origen[0][0];
         Coord.y=robotArm.eslabon5.csNextEslabon.origen[1][0];
         Coord.z=robotArm.eslabon5.csNextEslabon.origen[2][0];
-        resultados[0]= 1*objeto1.DistanciaCentro(Coord);
-        /*System.out.println("Coord");
+        resultados[2]= (1*objeto1.DistanciaCentro(Coord)) - 20;
+     /*   System.out.println("Coord");
         System.out.println(Coord.x);
         System.out.println(Coord.y);
-        System.out.println(Coord.z);*/
+        System.out.println(Coord.z);
         System.out.println("Resultados");
-        System.out.println(resultados[0]);
+        System.out.println("Distancia al objeto: " + resultados[0]);
+        System.out.println("Distancia promedio a objetos: " + resultados[1]);*/
       }  
       
       public double[] getCoordDistance(){
@@ -117,6 +122,96 @@ class Robot extends Thread {
       }
       
       
+      //dividir 1/getObstacleDistance y guardar en la variable RiesgoDeColisión
+      public float getObstacleDistance(Obstacle obst){
+        float distancia = 0;
+        int numEslabon = 4;
+        
+        PVector[] p = new PVector[numObstaculos];
+        PVector[] rA = new PVector[numEslabon];
+        PVector[] rB = new PVector[numEslabon];
+        
+        for(int i =0; i < numObstaculos; i++){
+          p[i] = new PVector();
+        }        
+        for(int i =0; i < numEslabon; i++){
+          rA[i] = new PVector();
+          rB[i] = new PVector();
+        }        
+        //Set obstacle distance
+          p[i].x = obst.Centro.x;
+          p[i].y = obst.Centro.y;
+          p[i].z = obst.Centro.z;
+        //Set bot actual distance
+        //eslabon1 es de 1 a 2
+        rA[0].x=robotArm.eslabon1.csNextEslabon.origen[0][0];
+        rA[0].y=robotArm.eslabon1.csNextEslabon.origen[1][0];
+        rA[0].z=robotArm.eslabon1.csNextEslabon.origen[2][0];
+        rB[0].x=robotArm.eslabon2.csNextEslabon.origen[0][0];
+        rB[0].y=robotArm.eslabon2.csNextEslabon.origen[1][0];
+        rB[0].z=robotArm.eslabon2.csNextEslabon.origen[2][0];
+        
+        //Eslabon2 es de 2 a 3
+        rA[1].x=robotArm.eslabon2.csNextEslabon.origen[0][0];
+        rA[1].y=robotArm.eslabon2.csNextEslabon.origen[1][0];
+        rA[1].z=robotArm.eslabon2.csNextEslabon.origen[2][0];
+        rB[1].x=robotArm.eslabon3.csNextEslabon.origen[0][0];
+        rB[1].y=robotArm.eslabon3.csNextEslabon.origen[1][0];
+        rB[1].z=robotArm.eslabon3.csNextEslabon.origen[2][0];
+        
+        //Eslabon3 es de 3 a 4
+        rA[2].x=robotArm.eslabon3.csNextEslabon.origen[0][0];
+        rA[2].y=robotArm.eslabon3.csNextEslabon.origen[1][0];
+        rA[2].z=robotArm.eslabon3.csNextEslabon.origen[2][0];
+        rB[2].x=robotArm.eslabon4.csNextEslabon.origen[0][0];
+        rB[2].y=robotArm.eslabon4.csNextEslabon.origen[1][0];
+        rB[2].z=robotArm.eslabon4.csNextEslabon.origen[2][0];
+        
+        //Eslabon4 es de 4 a 5
+        rA[3].x=robotArm.eslabon4.csNextEslabon.origen[0][0];
+        rA[3].y=robotArm.eslabon4.csNextEslabon.origen[1][0];
+        rA[3].z=robotArm.eslabon4.csNextEslabon.origen[2][0];
+        rB[3].x=robotArm.eslabon5.csNextEslabon.origen[0][0];
+        rB[3].y=robotArm.eslabon5.csNextEslabon.origen[1][0];
+        rB[3].z=robotArm.eslabon5.csNextEslabon.origen[2][0];
+        
+        //Calcular vector director
+        for(int i = 0; i < numEslabon; i++){
+          //Calcular vector director
+          PVector director = new PVector();
+          director = new PVector();
+          director.x = rB[i].x - rA[i].x;
+          director.y = rB[i].y - rA[i].y;
+          director.z = rB[i].z - rA[i].z;
+          System.out.println("El vector director es: " + director.x +", " + director.y +", "+ director.z);
+          
+          //Calcular el VectorAP
+          PVector AP = new PVector();
+          AP.x = p[i].x - rA[i].x;
+          AP.y = p[i].y - rA[i].y;
+          AP.z = p[i].z - rA[i].z;
+          System.out.println("El vector AP es: " + AP.x +", "+ AP.y +", "+ AP.z);
+          
+          //Calcular el producto vectorial
+          PVector APV = new PVector();          
+          APV.x = ((AP.y*director.z)-(director.y*AP.z));
+          APV.y = -((AP.x*director.z)-(director.x*AP.z));
+          APV.z = ((AP.x*director.y)-(director.x*AP.y));
+          System.out.println("El vector APV es: " + APV.x +", "+ APV.y +", "+ APV.z);
+          
+          //Calcular la distancia final
+          float sqrtAPV = (float) sqrt((APV.x*APV.x) + (APV.y*APV.y) + (APV.z*APV.z));
+          float sqrtV = (float) sqrt((director.x*director.x) + (director.y*director.y) + (director.z*director.z));
+          float dist = sqrtAPV/sqrtV;          
+          System.out.println("Distancia"+i+": " + dist);
+          distancia = distancia + dist;
+        }    
+        distancia = 1 / ((distancia/4));
+        
+        return distancia;
+      }
+      
+      
       
       @Override
       /*
@@ -126,6 +221,9 @@ class Robot extends Thread {
       */
       public void run() {
           System.out.println("Entrando al run del hilo...");
+          
+          //AQUÍ INICIALIZAMOS EL NÚMERO DE OBSTÁCULOS
+          numObstaculos = 1;
           
           ServerSocket serverSocket = null; 
           Socket clientSocket = null;
@@ -216,11 +314,11 @@ class Robot extends Thread {
                   nn.setMyWeights(w);            
                   
                   double[] resultados = new double[3];
-                  double actualDistance = 100000, distance;
+                  double actualDistance = 100000, obstacleDistance = 10000;
                   int MaxIt = 30, finalIterNumber = 0;                  
                   
                   while(finalIterNumber < MaxIt && actualDistance > 0){
-                      System.out.println("Evaluación local #" + finalIterNumber);
+                     // System.out.println("Evaluación local #" + finalIterNumber);
                     
                       nn.setMyInput(getCoordDistance());
                       angles = nn.getAngles();
@@ -231,28 +329,34 @@ class Robot extends Thread {
                       }
                       catch(InterruptedException ie) {
                       }        
-                      PVector Coord = new PVector();
+                    /*  PVector Coord = new PVector();
                       Coord.x=robotArm.eslabon5.csNextEslabon.origen[0][0];
                       Coord.y=robotArm.eslabon5.csNextEslabon.origen[1][0];
                       Coord.z=robotArm.eslabon5.csNextEslabon.origen[2][0];
-                      distance = 1*objeto1.DistanciaCentro(Coord);
+                      distance = 1*objeto1.DistanciaCentro(Coord);*/
                       
-                      if(distance < actualDistance)
-                        actualDistance = distance;
+                      if(resultados[1] < obstacleDistance)
+                        obstacleDistance = resultados[1];
+                      
+                      if(resultados[2] < actualDistance)
+                        actualDistance = resultados[2];
                       
                       finalIterNumber++;
                   }
                   
-                  resultados[0] = actualDistance;
+                  resultados[1] = obstacleDistance;
+                  resultados[2] = actualDistance;
                   
-                  //System.out.println("dato regresado");
-                  //System.out.println(distancia);      
+                  System.out.println("Resultados");
+                  System.out.println("Obj1: Suma de ángulos: "+resultados[0]);
+                  System.out.println("Obj2: Distancia promedio a obstaculos: " + resultados[1]);
+                  System.out.println("Restr: Distancia al objeto: "+resultados[2]);
+                  
                   
                   /**************************
                    * 3. Ahora se regresará al optimizador los valores de la evaluación del movimiento.
                    **************************/
                   System.out.println("enviado...");
-                  System.out.println(resultados[0]);
                   String sDist = String.valueOf(resultados[0]) + " " + String.valueOf(resultados[1]) + " " + String.valueOf(resultados[2]);
                   wr.write(sDist);
                   wr.flush(); // flushes the stream
@@ -546,7 +650,28 @@ class Robot extends Thread {
 
     objeto1 = new Objeto(Coord,40,150,20,10);
     objeto1.DibujaObjeto();
-
+    
+    //Creación de los obstáculos y sus coordenadas
+    int numObstacles = 1;
+    PVector[] CoordObst = new PVector[numObstacles];
+    for(int i = 0; i < numObstacles; i++){
+      CoordObst[i] = new PVector();
+    }
+    
+    /*CoordObst[0].x=400;
+    CoordObst[0].y=0;
+    CoordObst[0].z=0;*/
+    
+    CoordObst[0].x=400;
+    CoordObst[0].y=-100;
+    CoordObst[0].z=200;
+    
+    //Aquí cambiamos la cantidad de obstáculos 
+    obstaculo = new Obstacle[numObstacles];
+    for(int i = 0; i < numObstacles; i++){
+      obstaculo[i] = new Obstacle(CoordObst[i], 45,0,100, 150);
+      obstaculo[i].DibujaObjeto();
+    }
   }
 
   /*
@@ -788,7 +913,7 @@ class Robot extends Thread {
  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
- /*Clase para crear los objetos que sujetara el brazo*/
+ /*Clase para crear los objetos que sujetará el brazo*/
   class Objeto{
    public PVector Centro = new PVector();
    private int size;
@@ -827,6 +952,48 @@ class Robot extends Thread {
       distCoord[2] = Centro.z - Coord.z;      
       return distCoord;
    } 
+ }
+ 
+ 
+ /*Clase para crear los obstáculos que evitará el brazo*/
+  class Obstacle{
+   public PVector Centro = new PVector();
+   private int size;
+   private int R;
+   private int G;
+   private int B;
+   
+   public Obstacle(PVector Coord, int t, int R, int G, int B){
+    this.Centro.x=Coord.x;
+    this.Centro.y=Coord.y;
+    this.Centro.z=Coord.z;
+    this.R = R;
+    this.G = G;
+    this.B = B;
+    this.size=t;
+   }
+   
+   public void DibujaObjeto(){
+    noStroke();
+    fill(R,G,B);
+    lights();
+    translate(Centro.x, Centro.y, Centro.z);
+    sphere (size);
+   }
+   
+   /*public double DistanciaCentro(PVector Coord){
+     double d;
+     d=dist(Centro.x,Centro.y,Centro.z,Coord.x,Coord.y,Coord.z);
+     return (d);
+   }
+   
+   public double[] getCoordDistance(PVector Coord){
+      double[] distCoord = new double[3];
+      distCoord[0] = Centro.x - Coord.x;
+      distCoord[1] = Centro.y - Coord.y;
+      distCoord[2] = Centro.z - Coord.z;      
+      return distCoord;
+   } */
  }
  
 /*

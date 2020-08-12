@@ -56,6 +56,7 @@ class CoordinateSystem {
     line(origen[0][0], origen[1][0], origen[2][0], Y[0][0], Y[1][0], Y[2][0]);
     stroke(0, 0, 255);
     line(origen[0][0], origen[1][0], origen[2][0], Z[0][0], Z[1][0], Z[2][0]);
+    
   }
 
   /*
@@ -313,6 +314,7 @@ class Cylinder {
       vertex(positionsUp2[i][0][0], positionsUp2[i][1][0], positionsUp2[i][2][0]);
     }
     endShape();
+    
   }
 
   /*

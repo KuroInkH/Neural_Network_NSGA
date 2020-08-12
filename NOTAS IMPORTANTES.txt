@@ -5,10 +5,10 @@ PASOS PARA EJECUTAR LA APLICACIÓN
 > Primero ejecutar la aplicación de Processing
 Ejecutar NSGA de la siguiente manera~
 > Compilar:
-    g++ Constants.h Individual.cpp Individual.h Konstants.h List.h NSGA.cpp NSGA.h Population.cpp
-    Population.h principal.cpp RandUtils.cpp RandUtils.h SolutionDisplayer.cpp SolutionDisplayer.h
-    mops/ArmTrajectoryMOP.cpp mops/ArmTrajectoryMOP.h mops/mop.cpp mops/mop.h mops/theMOPS.h
-    mops/TorcsSimRally.cpp mops/TorcsSimRally.h -I/home/lily/Documentos/Thesis/nsga2_arm/src
-    -I/home/lily/Documentos/Thesis/nsga2_arm/src/mops -o ejecutable
+    g++ Constants.h Individual.cpp Individual.h Konstants.h List.h NSGA.cpp NSGA.h Population.cpp Population.h principal.cpp RandUtils.cpp RandUtils.h SolutionDisplayer.cpp SolutionDisplayer.h mops/ArmTrajectoryMOP.cpp mops/ArmTrajectoryMOP.h mops/mop.cpp mops/mop.h mops/theMOPS.h mops/TorcsSimRally.cpp mops/TorcsSimRally.h -I/home/lily/Documentos/Thesis/VERSIONES_FINALES/NN_v1/NSGA -I/home/lily/Documentos/Thesis/VERSIONES_FINALES/NN_v1/NSGA/mops -o ejecutable
 > Ejecutar:
     ./ejecutable 0.3 (float)
+
+
+
+MATERIAL CON EL QUE HE TRABAJADO
