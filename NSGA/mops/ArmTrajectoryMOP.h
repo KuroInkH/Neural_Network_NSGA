@@ -21,7 +21,7 @@ using namespace std;
 
 class ArmTrajectoryMOP: public MOP {
 public:
-   ArmTrajectoryMOP(int numWeight=48);
+   ArmTrajectoryMOP(int numWeight=54);
    virtual ~ArmTrajectoryMOP();
 
    // This method come from the base class MOP.

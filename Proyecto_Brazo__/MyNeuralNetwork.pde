@@ -25,6 +25,7 @@ class MyNeuralNetwork{
        Layer capaEntrada = new Layer();
        capaEntrada.addNeuron(new Neuron());
        capaEntrada.addNeuron(new Neuron());
+       capaEntrada.addNeuron(new Neuron());       
        capaEntrada.addNeuron(new Neuron());
        for(int i=0; i < capaEntrada.getNeuronsCount(); i++)
        {
@@ -86,8 +87,13 @@ class MyNeuralNetwork{
       this.ann.setWeights(weights);
     }
 
-    public void setMyInput(double[] i){
-      this.ann.setInput(NormalizeInput(i));
+    public void setMyInput(double[] i, double risk){
+      double[] norm = new double[i.length+1]; 
+      for(int x  = 0; x < i.length; x++){
+        norm[x] = i[x];
+      }
+      norm[i.length] = risk;
+      this.ann.setInput(NormalizeInput(norm));
   }
 
   float[] getAngles() {
@@ -101,13 +107,15 @@ class MyNeuralNetwork{
   public double[] NormalizeInput(double[] i){
     double[] temp = new double[i.length];
     double vMax = 700;
-    for (int x = 0; x < i.length; x++) {
+    for (int x = 0; x < i.length-1; x++) {
       if(i[x] < 0){
         i[x] = i[x] * -1;
       }      
       temp[x] = i[x]/vMax;
       //System.out.println("Input " + x + ": " + temp[x]);
     }
+    temp[i.length-1] = i[i.length-1];
+    //System.out.println("Input " + (i.length-1) + ": " + temp[i.length-1]);
     return temp;
   }
 

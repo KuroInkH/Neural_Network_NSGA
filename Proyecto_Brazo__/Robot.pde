@@ -36,9 +36,13 @@ class Robot extends Thread {
   public KinectControl kinect;
   //Objeto a sujetar
   public Objeto objeto1;
+  //Coordenadas de objeto1
+  public PVector[] objCoord;
   //Objeto(s) a evitar
   public Obstacle[] obstaculo;
-  //número de obstáculos a evitar
+  //Coordenadas de obstáculos
+  public PVector[] obstaculos;
+  //Número de obstáculos
   public int numObstaculos;
   //valor del movimiento del radio y ángulo del Robot (Algoritmo de Hernando)
   public int valRadio, valAngle;
@@ -55,7 +59,7 @@ class Robot extends Thread {
 
    class RemoteMethodInterface implements Runnable {
 
-      float[] w = new float[48];   //////////////////////------------------------------------------------------------------5---->6
+      float[] w = new float[54];   //////////////////////------------------------------------------------------------------5---->6
       float[] initAngles = new float[]{0, 0, 1.5, -1.5};
       float[] angles = new float[4];
 
@@ -90,8 +94,12 @@ class Robot extends Thread {
         resultados[0] = sumaAngulos;//sumaAngulos;
 
         // Objetivo 2: Riesgo de colisión
-        resultados[1] =getObstacleDistance();
-        //resultados[1] = 0; 
+        float riesgo = 0;
+        for(int y = 0; y < numObstaculos; y++){
+          riesgo = riesgo + getObstacleDistance(obstaculo[y]);
+        }
+        
+        resultados[1] = riesgo/numObstaculos;
         
         // Restricción: Distancia al objetivo.
         //Calcular la distancia entre el último eslabón y la posición del objetivo x,y,z.
@@ -100,14 +108,7 @@ class Robot extends Thread {
         Coord.x=robotArm.eslabon5.csNextEslabon.origen[0][0];
         Coord.y=robotArm.eslabon5.csNextEslabon.origen[1][0];
         Coord.z=robotArm.eslabon5.csNextEslabon.origen[2][0];
-        resultados[2]= (1*objeto1.DistanciaCentro(Coord)) - 20;
-     /*   System.out.println("Coord");
-        System.out.println(Coord.x);
-        System.out.println(Coord.y);
-        System.out.println(Coord.z);
-        System.out.println("Resultados");
-        System.out.println("Distancia al objeto: " + resultados[0]);
-        System.out.println("Distancia promedio a objetos: " + resultados[1]);*/
+        resultados[2]= (1*objeto1.DistanciaCentro(Coord)) - 40;
       }  
       
       public double[] getCoordDistance(){
@@ -127,21 +128,19 @@ class Robot extends Thread {
         float distancia = 0;
         int numEslabon = 4;
         
-        PVector[] p = new PVector[numObstaculos];
+        if(obst.isVisible){
+          PVector p = new PVector();
         PVector[] rA = new PVector[numEslabon];
         PVector[] rB = new PVector[numEslabon];
         
-        for(int i =0; i < numObstaculos; i++){
-          p[i] = new PVector();
-        }        
         for(int i =0; i < numEslabon; i++){
           rA[i] = new PVector();
           rB[i] = new PVector();
         }        
         //Set obstacle distance
-          p[i].x = obst.Centro.x;
-          p[i].y = obst.Centro.y;
-          p[i].z = obst.Centro.z;
+          p.x = obst.Centro.x;
+          p.y = obst.Centro.y;
+          p.z = obst.Centro.z;
         //Set bot actual distance
         //eslabon1 es de 1 a 2
         rA[0].x=robotArm.eslabon1.csNextEslabon.origen[0][0];
@@ -175,6 +174,13 @@ class Robot extends Thread {
         rB[3].y=robotArm.eslabon5.csNextEslabon.origen[1][0];
         rB[3].z=robotArm.eslabon5.csNextEslabon.origen[2][0];
         
+        /*System.out.println("Coord obst: "+p.x+", "+p.y+", "+p.z);
+        
+        for(int i = 0; i < numEslabon; i++){
+          System.out.println("Coord brazo" + i+": "+rA[i].x+", "+rA[i].y+", "+rA[i].z);
+        }*/
+        
+        
         //Calcular vector director
         for(int i = 0; i < numEslabon; i++){
           //Calcular vector director
@@ -183,30 +189,34 @@ class Robot extends Thread {
           director.x = rB[i].x - rA[i].x;
           director.y = rB[i].y - rA[i].y;
           director.z = rB[i].z - rA[i].z;
-          System.out.println("El vector director es: " + director.x +", " + director.y +", "+ director.z);
+          //System.out.println("El vector director es: " + director.x +", " + director.y +", "+ director.z);
           
           //Calcular el VectorAP
           PVector AP = new PVector();
-          AP.x = p[i].x - rA[i].x;
-          AP.y = p[i].y - rA[i].y;
-          AP.z = p[i].z - rA[i].z;
-          System.out.println("El vector AP es: " + AP.x +", "+ AP.y +", "+ AP.z);
+          AP.x = p.x - rA[i].x;
+          AP.y = p.y - rA[i].y;
+          AP.z = p.z - rA[i].z;
+          //System.out.println("El vector AP es: " + AP.x +", "+ AP.y +", "+ AP.z);
           
           //Calcular el producto vectorial
           PVector APV = new PVector();          
           APV.x = ((AP.y*director.z)-(director.y*AP.z));
           APV.y = -((AP.x*director.z)-(director.x*AP.z));
           APV.z = ((AP.x*director.y)-(director.x*AP.y));
-          System.out.println("El vector APV es: " + APV.x +", "+ APV.y +", "+ APV.z);
+          //System.out.println("El vector APV es: " + APV.x +", "+ APV.y +", "+ APV.z);
           
           //Calcular la distancia final
           float sqrtAPV = (float) sqrt((APV.x*APV.x) + (APV.y*APV.y) + (APV.z*APV.z));
           float sqrtV = (float) sqrt((director.x*director.x) + (director.y*director.y) + (director.z*director.z));
-          float dist = sqrtAPV/sqrtV;          
-          System.out.println("Distancia"+i+": " + dist);
-          distancia = distancia + dist;
+          float dist = (sqrtAPV/sqrtV) + 80;          
+          //System.out.println("Distancia"+i+": " + dist);
+          if(distancia == 0){
+            distancia = distancia+1;
+          }
+            distancia = distancia + dist;
         }    
         distancia = 1 / ((distancia/4));
+        }
         
         return distancia;
       }
@@ -221,9 +231,6 @@ class Robot extends Thread {
       */
       public void run() {
           System.out.println("Entrando al run del hilo...");
-          
-          //AQUÍ INICIALIZAMOS EL NÚMERO DE OBSTÁCULOS
-          numObstaculos = 1;
           
           ServerSocket serverSocket = null; 
           Socket clientSocket = null;
@@ -315,12 +322,24 @@ class Robot extends Thread {
                   
                   double[] resultados = new double[3];
                   double actualDistance = 100000, obstacleDistance = 10000;
-                  int MaxIt = 30, finalIterNumber = 0;                  
+                  int MaxIt = 30, finalIterNumber = 0;  
+                  double distProm = 0, colRiskProm = 0, sumAngProm = 0;
+                  int numEscenarios = 3;
                   
-                  while(finalIterNumber < MaxIt && actualDistance > 0){
-                     // System.out.println("Evaluación local #" + finalIterNumber);
+                  for(int z = 0; z < numEscenarios; z++){
+                    System.out.println("Trabajando en el escenario " + z);
+                    setScene(z);
+                    actualDistance = 100000;
+                    obstacleDistance = 10000;
+                    finalIterNumber = 0;  
+                    while(finalIterNumber < MaxIt && actualDistance > 0){
+                      
+                      float riesgo = 0;
+                      for(int y = 0; y < numObstaculos; y++){
+                        riesgo = riesgo + getObstacleDistance(obstaculo[y]);
+                      }                      
                     
-                      nn.setMyInput(getCoordDistance());
+                      nn.setMyInput(getCoordDistance(), riesgo);
                       angles = nn.getAngles();
                       
                       evaluateMovement(angles,resultados);
@@ -328,24 +347,24 @@ class Robot extends Thread {
                           Thread.sleep(200);
                       }
                       catch(InterruptedException ie) {
-                      }        
-                    /*  PVector Coord = new PVector();
-                      Coord.x=robotArm.eslabon5.csNextEslabon.origen[0][0];
-                      Coord.y=robotArm.eslabon5.csNextEslabon.origen[1][0];
-                      Coord.z=robotArm.eslabon5.csNextEslabon.origen[2][0];
-                      distance = 1*objeto1.DistanciaCentro(Coord);*/
-                      
+                      }       
                       if(resultados[1] < obstacleDistance)
                         obstacleDistance = resultados[1];
                       
                       if(resultados[2] < actualDistance)
                         actualDistance = resultados[2];
+                        
+                      sumAngProm  = sumAngProm + resultados[0];
                       
                       finalIterNumber++;
+                    }
+                    distProm = distProm + actualDistance;
+                    colRiskProm = colRiskProm + obstacleDistance;
+                    sumAngProm  = sumAngProm/MaxIt;
                   }
-                  
-                  resultados[1] = obstacleDistance;
-                  resultados[2] = actualDistance;
+                  resultados[0] = sumAngProm/numEscenarios;
+                  resultados[1] = colRiskProm/numEscenarios;
+                  resultados[2] = distProm/numEscenarios;
                   
                   System.out.println("Resultados");
                   System.out.println("Obj1: Suma de ángulos: "+resultados[0]);
@@ -369,6 +388,31 @@ class Robot extends Thread {
               e.printStackTrace();
           }
       }
+   }
+   
+   public void setScene(int actualScene){
+     objeto1.cambiarCoordenadas(objCoord[actualScene]);
+     
+     switch(actualScene){
+       case 0:
+         obstaculo[0].isVisible = false;
+         obstaculo[1].isVisible = false;
+         obstaculo[2].isVisible = true;
+         obstaculo[3].isVisible = true;
+         break;
+       case 1:
+         obstaculo[0].isVisible = false;
+         obstaculo[1].isVisible = true;
+         obstaculo[2].isVisible = false;
+         obstaculo[3].isVisible = true;
+         break;
+       case 2:
+         obstaculo[0].isVisible = true;
+         obstaculo[1].isVisible = false;
+         obstaculo[2].isVisible = true;
+         obstaculo[3].isVisible = true;
+         break;         
+     }
    }
    
   Robot(PApplet canvas) {
@@ -418,6 +462,65 @@ class Robot extends Thread {
     robotArm.isModifyModel = true;
     //comienza a ejecutar la instancia de Robot en un hilo
     start();
+    
+    
+    //Coordenadas del primer objeto que sujetara el robot
+    objCoord = new PVector[4];
+    
+    for(int i = 0; i < 4; i++){
+      objCoord[i] = new PVector();
+    }
+    
+    objCoord[0].x = 194;
+    objCoord[0].y = 100;
+    objCoord[0].z = 200;
+                   
+    objCoord[2].x = 150;
+    objCoord[2].y = 172;
+    objCoord[2].z = 100;
+                  
+    objCoord[3].x = 222;
+    objCoord[3].y = 52;
+    objCoord[3].z = 27;
+    
+    objCoord[1].x = -200;
+    objCoord[1].y = 100;
+    objCoord[1].z = -200;
+
+    objeto1 = new Objeto(objCoord[0],40,150,20,10);
+    
+    
+    
+    //Creación de los obstáculos y sus coordenadas
+    numObstaculos = 4;
+    PVector[] CoordObst = new PVector[numObstaculos];
+    for(int i = 0; i < numObstaculos; i++){
+      CoordObst[i] = new PVector();
+    }
+    
+    CoordObst[0].x=206;
+    CoordObst[0].y=241;
+    CoordObst[0].z=-150;
+    
+    CoordObst[1].x=138;
+    CoordObst[1].y=123;
+    CoordObst[1].z=200;
+    
+    CoordObst[2].x=-182;
+    CoordObst[2].y=150;
+    CoordObst[2].z=-200;
+    
+    CoordObst[3].x=-222;
+    CoordObst[3].y=-100;
+    CoordObst[3].z=270;
+    
+    //Aquí cambiamos la cantidad de obstáculos 
+    obstaculo = new Obstacle[numObstaculos];
+    for(int i = 0; i < numObstaculos; i++){
+      obstaculo[i] = new Obstacle(CoordObst[i], 45,100,0, 150);
+    }
+    
+    
     
      Thread t = new Thread(new RemoteMethodInterface());
       t.start();
@@ -642,36 +745,22 @@ class Robot extends Thread {
     line(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
     line(p3.x, p3.y, p3.z, p4.x, p4.y, p4.z);
     
-    //Coordenadas del primer objeto que sujetara el robot
-    PVector Coord = new PVector();
-    Coord.x=-200;
-    Coord.y=100;
-    Coord.z=-200;
+    
+    
+    PMatrix pm = getMatrix();
+    
 
-    objeto1 = new Objeto(Coord,40,150,20,10);
+    //Dibujar obj     
     objeto1.DibujaObjeto();
     
-    //Creación de los obstáculos y sus coordenadas
-    int numObstacles = 1;
-    PVector[] CoordObst = new PVector[numObstacles];
-    for(int i = 0; i < numObstacles; i++){
-      CoordObst[i] = new PVector();
+    setMatrix(pm);
+    
+    for(int i = 0; i < numObstaculos; i++){
+      if(obstaculo[i].isVisible) obstaculo[i].DibujaObjeto();
     }
     
-    /*CoordObst[0].x=400;
-    CoordObst[0].y=0;
-    CoordObst[0].z=0;*/
-    
-    CoordObst[0].x=400;
-    CoordObst[0].y=-100;
-    CoordObst[0].z=200;
-    
-    //Aquí cambiamos la cantidad de obstáculos 
-    obstaculo = new Obstacle[numObstacles];
-    for(int i = 0; i < numObstacles; i++){
-      obstaculo[i] = new Obstacle(CoordObst[i], 45,0,100, 150);
-      obstaculo[i].DibujaObjeto();
-    }
+    setMatrix(pm);
+
   }
 
   /*
@@ -952,12 +1041,19 @@ class Robot extends Thread {
       distCoord[2] = Centro.z - Coord.z;      
       return distCoord;
    } 
+   
+   public void cambiarCoordenadas(PVector Coord){
+     this.Centro.x=Coord.x;
+     this.Centro.y=Coord.y;
+     this.Centro.z=Coord.z;
+   }
  }
  
  
  /*Clase para crear los obstáculos que evitará el brazo*/
   class Obstacle{
    public PVector Centro = new PVector();
+   public boolean isVisible;
    private int size;
    private int R;
    private int G;
@@ -971,9 +1067,11 @@ class Robot extends Thread {
     this.G = G;
     this.B = B;
     this.size=t;
+    this.isVisible = false;
    }
    
    public void DibujaObjeto(){
+    //resetMatrix();
     noStroke();
     fill(R,G,B);
     lights();
